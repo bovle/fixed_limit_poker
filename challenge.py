@@ -76,6 +76,9 @@ def main():
 
     res = defaultdict(dict)
     for key in stats.keys():
+        if "sum" not in res[key[0]]:
+            res[key[0]]["sum"] = 0
+        res[key[0]]["sum"] += stats[key]
         res[key[0]][key[1]] = stats[key]
     
     duration = time.time() - start_time
