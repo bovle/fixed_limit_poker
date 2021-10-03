@@ -6,9 +6,9 @@ import { MatTableDataSource } from '@angular/material/table';
 
 export class ChallengeResult {
   timestamp: number;
-  stats: { [id: string]: number }
+  stats: { [id: string]: { [id: string]: number } }
 
-  constructor(timestamp: number, stats: { [id: string]: number }) {
+  constructor(timestamp: number, stats: { [id: string]: { [id: string]: number } }) {
     this.timestamp = timestamp;
     this.stats = stats
   }
@@ -52,7 +52,7 @@ export class ScoreboardComponent {
 
   private getBotColumns(): ConcatArray<{ columnDef: string; header: string; cell: (element: any) => string; }> {
     return this.bots.map((x => {
-      return { columnDef: x, header: x, cell: (element: ChallengeResult) => `${element.stats[x] !== undefined ? element.stats[x] : ''}` };
+      return { columnDef: x, header: x, cell: (element: ChallengeResult) => `${element.stats[x] !== undefined ? element.stats[x]["sum"] : ''}` };
     }));
   }
 

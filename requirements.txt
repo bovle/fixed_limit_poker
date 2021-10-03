@@ -4,3 +4,4 @@ pyfancy==2.4.5
 rope==0.20.1
 toml==0.10.2
 websockets==10.0
+watchdog==2.1.6
