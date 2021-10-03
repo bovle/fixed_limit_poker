@@ -20,15 +20,23 @@ class WebsocketWorker(threading.Thread):
         self.results = []
         self.stopFlag = False
 
+    def load_file(self, path):
+        with open(path, "rb") as f:
+            self.results.append(json.loads(pickle.load(f)))
+
     def run(self):
         while not self.stopFlag:
-            for ws in self.connectedProgress.keys():
-                while self.connectedProgress[ws] < len(self.results):
+            for ws in list(self.connectedProgress.keys()).copy():
+                while ws in self.connectedProgress and self.connectedProgress[ws] < len(self.results):
                     to_send = self.results[self.connectedProgress[ws]]
-                    coro = ws.send(json.dumps(to_send))
-                    future = asyncio.run_coroutine_threadsafe(coro, loop)
-                    future.result()
-                    self.connectedProgress[ws] += 1
+                    try:
+                        coro = ws.send(json.dumps(to_send))
+                        future = asyncio.run_coroutine_threadsafe(coro, loop)
+                        future.result()
+                        self.connectedProgress[ws] += 1
+                    except websockets.exceptions.ConnectionClosedError as ex:
+                        print("Error in websocket: ", ex)
+                        del self.connectedProgress[ws]
 
             time.sleep(2)
 
@@ -44,24 +52,24 @@ class WebsocketWorker(threading.Thread):
             self.connected.remove(websocket)
 
 
+def on_modified(event):
+    print(f"{event.src_path} has been created!")
+    time.sleep(0.1)
+    worker.load_file(event.src_path)
+
+
 if __name__ == "__main__":
     worker = WebsocketWorker()
-
-    def on_created(event):
-        print(f"hey, {event.src_path} has been created!")
-        with open(event.src_path, "rb") as f:
-            worker.results.append(json.loads(pickle.load(f)))
 
     results_dir = "./results/"
     onlyfiles = [join(results_dir, f)
                  for f in listdir(results_dir) if isfile(join(results_dir, f)) and f.endswith(".pckl")]
 
     for fp in onlyfiles:
-        with open(fp, "rb") as f:
-            worker.results.append(json.loads(pickle.load(f)))
+        worker.load_file(fp)
 
     my_event_handler = PatternMatchingEventHandler()
-    my_event_handler.on_created = on_created
+    my_event_handler.on_modified = on_modified
     observer = Observer()
     observer.schedule(my_event_handler, results_dir, recursive=True)
     observer.daemon = True
