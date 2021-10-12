@@ -6,7 +6,11 @@ from utils.deuces.card import Card
 from utils.deuces.evaluator import Evaluator
 
 
+
 def _getPreflopHandType(hand: Sequence[str]) -> str:
+    """
+    Translate from list of cards i.e. ['Ac', 'As'] to 'AA', or ['2c', 3s'] to '32o' (off suit), or ['2c', '3c'] to '32s'
+    """
     hand = sorted(hand, key=lambda x: RANKS.index(x[0]), reverse=True)
 
     if hand[0][0] == hand[1][0]:
