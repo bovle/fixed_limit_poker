@@ -7,6 +7,3 @@ class TestUtils(TestCase):
         hand = ['As', 'Ah']
         val = handValue.getHandPercent(hand)
         self.assertTrue(val < 1)
-
-    def test2(self):
-        self.fail()
