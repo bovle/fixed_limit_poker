@@ -11,10 +11,20 @@
 - [ ] Håndter multiple kampe samtidig
   - [ ] Spil N bots mod hinanden alle mod alle
   - [ ] Vis resultat som matchup tabel
+- [ ] Fejlhåndtering
+  - [ ] Hvis de crasher
+  - [ ] Hvis de tager for lang tid (1 sekund?)
+- [ ] Reimplment scoreboard using Google docs
+  - [ ] Gather results (in observer?) 
+  - [ ] Upload raw data to Google sheets
+  - [ ] Make Google Sheet that displays data in a pretty way
 
 Nice to have:
 
 - [ ] løbende turneringer
+  - [ ] Hvordan får vi deres kode?
+    - [ ] GitHub gist?
+    - [ ] Github Repo?
 
 
 
