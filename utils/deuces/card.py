@@ -42,10 +42,10 @@ class Card:
 
     # for pretty printing
     PRETTY_SUITS = {
-        1: chr(9824),   # spades
-        2: chr(9829),   # hearts
-        4: chr(9830),   # diamonds
-        8: chr(9827)    # clubs
+        1: "s",   # spades
+        2: "h",   # hearts
+        4: "d",   # diamonds
+        8: "c"    # clubs
     }
 
     # hearts and diamonds
@@ -190,7 +190,7 @@ class Card:
 
         r = Card.STR_RANKS[rank_int]
 
-        return f"[{r}{s}]"
+        return f"{r}{s}"
 
     @staticmethod
     def print_pretty_card(card_int):

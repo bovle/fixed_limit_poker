@@ -1,5 +1,5 @@
 import pickle
-from typing import Dict, List, Sequence
+from typing import Dict, List, Sequence, Tuple
 from collections import defaultdict
 from environment.Constants import RANKS, HandType
 from utils.deuces.card import Card
@@ -16,31 +16,32 @@ def _getPreflopHandType(hand: Sequence[str]) -> str:
     else:
         return hand[0][0] + hand[1][0] + 'o'
 
-def getHandPercent(hand: Sequence[str], board: Sequence[str] = []) -> float:
+def getHandPercent(hand: Sequence[str], board: Sequence[str] = []) -> Tuple[float, List[str]]:
     if len(board) == 0:
         with open('./utils/preflopHandRankings.pckl', 'rb') as rankingsFile:
             rankings = pickle.load(rankingsFile)
             preflopHandType = _getPreflopHandType(hand)
-            return rankings[preflopHandType]
+            return rankings[preflopHandType], hand
     else:
         evaluator = Evaluator()
         d_hand = [Card().new(c) for c in hand]
         d_board = [Card().new(c) for c in board]
-        rank = evaluator.evaluate(d_hand, d_board)
+        rank, cards = evaluator.evaluate(d_hand, d_board)
         percentage = evaluator.get_five_card_rank_percentage(rank)  # higher better here
-        return percentage * 100
+        return percentage, [Card.int_to_pretty_str(c) for c in cards]
 
 
-def getHandType(hand: List[str], board: List[str] = []):
+def getHandType(hand: List[str], board: List[str] = []) -> Tuple[HandType, List[str]]:
     if len(board) == 0:
         return _getPreflopHandType(hand)
     else:    
         d_hand = [Card().new(c) for c in hand]
         d_board = [Card().new(c) for c in board]
         evaluator = Evaluator()
-        return HandType(evaluator.get_rank_class(evaluator.evaluate(d_hand, d_board)))
+        rank, cards = evaluator.evaluate(d_hand, d_board)
+        return HandType(evaluator.get_rank_class(rank)), [Card.int_to_pretty_str(c) for c in cards]
 
-def getLongestStraight(hand: List[str], board: List[str] = []):
+def getLongestStraight(hand: List[str], board: List[str] = []) -> Tuple[int, str, str]:
     cardRanks = [RANKS.index(c[0]) for c in hand + board]
     if RANKS.index('A') in cardRanks:
         cardRanks.append(-1) # add low ace
@@ -62,9 +63,31 @@ def getLongestStraight(hand: List[str], board: List[str] = []):
         return ans, "A", RANKS[startRank + ans - 1]
     return ans, RANKS[startRank], RANKS[startRank + ans - 1]
 
-def getHighestSuitCount(hand: List[str], board: List[str] = []):
+def getHighestSuitCount(hand: List[str], board: List[str] = []) -> Tuple[int, str]:
     suitCounts: Dict[str, int] = defaultdict(lambda: 0)
     for c in hand + board:
         suitCounts[c[1]] += 1
     maxSuit = max(suitCounts, key=suitCounts.get)
     return suitCounts[maxSuit], maxSuit
+
+def getBoardHandType(board: List[str]) -> HandType:
+    if len(board) >= 5:
+        return getHandType(board[:2], board[2:])[0]
+    else:
+        ranks = [c[0] for c in board]
+        counts = defaultdict(lambda: 1)
+        for i in range(len(ranks)-1):
+            if ranks[i] == ranks[i+1]:
+                counts[ranks[i]] += 1
+        counts = list(counts.values())
+        if len(counts) > 1:
+            return HandType.TWOPAIR
+        elif len(counts) == 1:
+            if counts[0] == 2:
+                return HandType.PAIR
+            elif counts[0] == 3:
+                return HandType.THREEOFAKIND
+            elif counts[0] == 4:
+                return HandType.FOUROFAKIND
+    return HandType.HIGHCARD
+

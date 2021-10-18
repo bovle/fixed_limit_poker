@@ -27,33 +27,33 @@ class Example1Bot(BotInterface):
         return Action.FOLD
 
     def handlePreFlop(self, observation: Observation) -> Action:
-        handPercent = getHandPercent(observation.myHand)
-        if handPercent < 40:
+        handPercent, _ = getHandPercent(observation.myHand)
+        if handPercent < .40:
             return Action.RAISE
-        elif handPercent < 60:
+        elif handPercent < .60:
             return Action.CALL
         return Action.FOLD
 
     def handleFlop(self, observation: Observation) -> Action:
-        handPercent = getHandPercent(
+        handPercent, cards = getHandPercent(
             observation.myHand, observation.boardCards)
-        if handPercent <= 60:
+        if handPercent <= .60:
             return Action.RAISE
-        elif handPercent <= 80 or self.getFlushDraw(observation) or self.getStraightDraw(observation):
+        elif handPercent <= .80 or self.getFlushDraw(observation) or self.getStraightDraw(observation):
             return Action.CALL
         return Action.FOLD
 
     def handleTurn(self, observation: Observation) -> Action:
-        handPercent = getHandPercent(
+        handPercent, cards = getHandPercent(
             observation.myHand, observation.boardCards)
-        if handPercent <= 50:
+        if handPercent <= .50:
             return Action.RAISE
-        elif handPercent <= 70 or self.getFlushDraw(observation) or self.getStraightDraw(observation):
+        elif handPercent <= .70 or self.getFlushDraw(observation) or self.getStraightDraw(observation):
             return Action.CALL
         return Action.FOLD
 
     def handleRiver(self, observation: Observation) -> Action:
-        handPercent = getHandPercent(
+        handPercent, cards = getHandPercent(
             observation.myHand, observation.boardCards)
         if handPercent <= 40:
             return Action.RAISE

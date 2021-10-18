@@ -25,7 +25,7 @@ class TestDeuces(TestCase):
         evaluator = Evaluator()
 
         # and rank your hand
-        rank = evaluator.evaluate(board, hand)
+        rank, _ = evaluator.evaluate(board, hand)
         print()
         # or for random cards or games, create a deck
         print("Dealing a new hand...")
@@ -43,8 +43,8 @@ class TestDeuces(TestCase):
         print("Player 2's cards:")
         Card.print_pretty_cards(player2_hand)
 
-        p1_score = evaluator.evaluate(board, player1_hand)
-        p2_score = evaluator.evaluate(board, player2_hand)
+        p1_score, _ = evaluator.evaluate(board, player1_hand)
+        p2_score, _ = evaluator.evaluate(board, player2_hand)
 
         # bin the scores into classes
         p1_class = evaluator.get_rank_class(p1_score)

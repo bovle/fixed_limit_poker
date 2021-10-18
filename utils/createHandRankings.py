@@ -9,7 +9,7 @@ for hand in list:
         count += 4
     elif hand[2] == "o":
         count += 12
-    res[hand] = (count/1326)*100
+    res[hand] = (count/1326)
 
 import pickle
 

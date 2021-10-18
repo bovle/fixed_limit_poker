@@ -48,12 +48,12 @@ class Evaluator(object):
         if cards[0] & cards[1] & cards[2] & cards[3] & cards[4] & 0xF000:
             handOR = (cards[0] | cards[1] | cards[2] | cards[3] | cards[4]) >> 16
             prime = Card.prime_product_from_rankbits(handOR)
-            return self.table.flush_lookup[prime]
+            return self.table.flush_lookup[prime], cards
 
         # otherwise
         else:
             prime = Card.prime_product_from_hand(cards)
-            return self.table.unsuited_lookup[prime]
+            return self.table.unsuited_lookup[prime], cards
 
     def _six(self, cards):
         """
@@ -62,15 +62,17 @@ class Evaluator(object):
         and returns this ranking.
         """
         minimum = LookupTable.MAX_HIGH_CARD
+        cards = cards[0:5]
 
         all5cardcombobs = itertools.combinations(cards, 5)
         for combo in all5cardcombobs:
 
-            score = self._five(combo)
+            score, _ = self._five(combo)
             if score < minimum:
                 minimum = score
+                cards = combo
 
-        return minimum
+        return minimum, cards
 
     def _seven(self, cards):
         """
@@ -79,15 +81,17 @@ class Evaluator(object):
         and returns this ranking.
         """
         minimum = LookupTable.MAX_HIGH_CARD
+        cards = cards[0:5]
 
         all5cardcombobs = itertools.combinations(cards, 5)
         for combo in all5cardcombobs:
             
-            score = self._five(combo)
+            score, _ = self._five(combo)
             if score < minimum:
                 minimum = score
+                cards = combo
 
-        return minimum
+        return minimum, cards
 
     def get_rank_class(self, hr):
         """
@@ -151,7 +155,7 @@ class Evaluator(object):
             for player, hand in enumerate(hands):
 
                 # evaluate current board position
-                rank = self.evaluate(hand, board[:(i + 3)])
+                rank, _ = self.evaluate(hand, board[:(i + 3)])
                 rank_class = self.get_rank_class(rank)
                 class_string = self.class_to_string(rank_class)
                 percentage = 1.0 - self.get_five_card_rank_percentage(rank)  # higher better here
@@ -174,7 +178,7 @@ class Evaluator(object):
 
             # otherwise on all other streets
             else:
-                hand_result = self.class_to_string(self.get_rank_class(self.evaluate(hands[winners[0]], board)))
+                hand_result = self.class_to_string(self.get_rank_class(self.evaluate(hands[winners[0]], board)[0]))
                 print()
                 print(f"{line} HAND OVER {line}")
                 if len(winners) == 1:
