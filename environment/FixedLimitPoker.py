@@ -125,7 +125,7 @@ class FixedLimitPoker:
         board = [Card.new(c) for c in self.boardCards]
         for i in self.activePlayerQueue:
             hand = [Card.new(c) for c in self.players[i].hand]
-            val = self.evaluator.evaluate(board, hand)
+            val, _ = self.evaluator.evaluate(board, hand)
             if val < winnerVal:
                 winnerVal = val
                 winners = [i]

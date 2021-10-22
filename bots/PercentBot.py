@@ -7,9 +7,9 @@ from environment.Observation import Observation
 from utils.handValue import getHandPercent, getHandType, getHighestSuitCount, getLongestStraight
 
 
-class Example1Bot(BotInterface):
+class PercentBot(BotInterface):
 
-    def __init__(self, name="example1"):
+    def __init__(self, name="percentBot"):
         super().__init__(name=name)
 
     def act(self, action_space: Sequence[Action], observation: Observation) -> Action:
