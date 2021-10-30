@@ -1,4 +1,5 @@
 from copy import deepcopy
+import time
 from typing import List, Tuple
 
 from bots.BotInterface import BotInterface
@@ -92,12 +93,7 @@ class FixedLimitPoker:
             
         self.updateActionSpace()
         if self.getCurrentPlayer().isAutoPlayer():
-            try:
-                move = self.getAutoPlayerMove()
-            except Exception as ex:
-                move = Action.FOLD
-                print(f"Bot: '{self.getCurrentPlayer().bot.name}' caused an exception!!! Folding on their behalf.")
-                print(ex)
+            move = self.getAutoPlayerMove()
             return self.step(move)
         else:
             return (self.actionSpace, self.getObservation(), 0, False)
@@ -221,7 +217,18 @@ class FixedLimitPoker:
             return Action.FOLD
 
     def getAutoPlayerMove(self) -> Action:
-        return self.getCurrentPlayer().bot.act(self.actionSpace, self.getObservation())
+        try:
+            startTime = time.time()
+            move = self.getCurrentPlayer().bot.act(self.actionSpace, self.getObservation())
+            actTime = time.time() - startTime
+            if actTime >= 1:
+                move = Action.FOLD
+                print(f"Bot: '{self.getCurrentPlayer().bot.name}' took too long ({actTime}) to return. Folding on their behalf.")
+        except Exception as ex:
+            move = Action.FOLD
+            print(f"Bot: '{self.getCurrentPlayer().bot.name}' caused an exception!!! Folding on their behalf.")
+            print(ex)
+        return move
 
     def getObservation(self) -> Observation:
         obs = Observation()
