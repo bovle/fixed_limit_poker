@@ -7,4 +7,4 @@ from .CounterBot import CounterBot
 from .RandomBot import RandomBot
 from .UnitTesterBot import UnitTesterBot
 from .ExceptionBot import ExceptionBot
-from .stallBot import StallBot
+from .StallBot import StallBot
