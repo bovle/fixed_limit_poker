@@ -1,6 +1,6 @@
 from copy import deepcopy
 import time
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 from bots.BotInterface import BotInterface
 from environment.Constants import Action, Stage
@@ -30,6 +30,8 @@ class FixedLimitPoker:
     evaluator: Evaluator
     observers: List[Observer]
     punishSlowBots: bool
+    actionHistory: Dict[Player, Dict[Stage, Dict[Action, int]]]
+    debugMode: bool
 
     def __init__(self, players: List[BotInterface], smallBlind=5, bigBlind=10, stackSize = 1000, observers=[], punishSlowBots=True):
         self.players = [Player(player) for player in players]
@@ -40,6 +42,8 @@ class FixedLimitPoker:
         self.evaluator = Evaluator()
         self.observers = observers
         self.punishSlowBots = punishSlowBots
+        self.actionHistory = {}
+        self.debugMode = False
 
     def reset(self, rotatePlayers=False, stackedDeck:List[str]=[]) -> Tuple[List[Action],Observation,int,bool]:    
         self.boardCards = []
@@ -68,12 +72,29 @@ class FixedLimitPoker:
     
     def rotatePlayers(self) -> None:
         self.players.append(self.players.pop(0))
+    
+    def updateActionHistory(self, action):
+        bot_name = self.getCurrentPlayer().bot.name
+        if bot_name not in self.actionHistory:
+            self.actionHistory[bot_name] = dict()
+
+        if self.stage not in self.actionHistory[bot_name]:
+            self.actionHistory[bot_name][self.stage] = dict()
+
+        if action not in self.actionHistory[bot_name][self.stage]:
+            self.actionHistory[bot_name][self.stage][action] = 0
+
+        self.actionHistory[bot_name][self.stage][action] += 1
+
 
     def step(self, action:Action) -> Tuple[List[Action],Observation,int,bool] :
         if not action in self.actionSpace:
             action = self.getNearestAllowedAction(action)
         self.executeStep(action)
         self.nextPlayer(action)
+
+        if self.debugMode:
+            self.updateActionHistory(action)
         
         if self.isRoundOver():
             
@@ -252,7 +273,7 @@ class FixedLimitPoker:
         playerObs.contribution = player.contribution
         playerObs.name = player.bot.name
         playerObs.position = player.position
-        playerObs.history =  deepcopy(player.history)
+        playerObs.history =  player.history
         playerObs.reward = player.reward
         playerObs.win = player.win
         return playerObs
