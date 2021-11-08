@@ -29,8 +29,14 @@ class OmnipotentObservation:
         pots_str = f"TotalPot: {self.totalPot:>3} StagePot: {self.stagePot:>3}"
         pots = pyfancy().green(pots_str).get()
 
-        player_hands_list = [
-            f"'{ph[0]}': {' '.join(ph[1])} ({round(getHandPercent(ph[1], self.boardCards)[0], 2)})" for ph in self.hands.items()]
+        player_hands_list = []
+        for ph in self.hands.items():
+            percent, _ = getHandPercent(ph[1], self.boardCards)
+            percent_str = str(round(percent, 2))
+            cards = ' '.join(ph[1])
+            player_name = f"'{ph[0]}':"
+            player_hands_list.append(f"{player_name} {cards} ({percent_str})")
+
         player_hands = pyfancy().yellow(" ".join(player_hands_list)).get()
         current_board = " ".join(self.boardCards)
         community = pyfancy().blue(f'Community: {current_board}').get()
