@@ -1,3 +1,4 @@
+from functools import lru_cache
 import pickle
 from typing import Dict, List, Sequence, Tuple, Union
 from collections import defaultdict
@@ -9,7 +10,8 @@ evaluator = Evaluator()
 with open('./utils/preflopHandRankings.pckl', 'rb') as rankingsFile:
     rankings = pickle.load(rankingsFile)
 
-def _getPreflopHandType(hand: Sequence[str]) -> str:
+@lru_cache(maxsize=4096)
+def _getPreflopHandType(hand: Tuple[str]) -> str:
     hand = sorted(hand, key=lambda x: RANKS.index(x[0]), reverse=True)
 
     if hand[0][0] == hand[1][0]:
@@ -71,7 +73,17 @@ def getHandPercent(hand: Sequence[str], board: Sequence[str] = []) -> Tuple[floa
             So the best possible hand given the board cards might not even be in the top 15 % of hands
 
     '''
-    if len(board) < 3:
+    if len(board) > 0:
+        return _getHandPercent(tuple(hand), tuple(board))
+    
+    return _getHandPercent(tuple(hand))
+
+@lru_cache(maxsize=2**16)
+def _getHandPercent(hand: Tuple[str], board: Tuple[str] = None) -> Tuple[float, List[str]]:
+    """
+    Inner function for GetHandPercent. Using LRU cache to avoid needless computation.
+    """
+    if board is None:
         preflopHandType = _getPreflopHandType(hand)
         return rankings[preflopHandType], hand
     else:
@@ -117,8 +129,15 @@ def getHandType(hand: List[str], board: List[str] = []) -> Union[ Tuple[str, Lis
 
                 returns (HandType.TWOPAIR, ['Ah', 'As', '7s', 'Kh', 'Kc'])
         
-    '''
-    if len(board) < 3:
+    '''    
+    if len(board) > 0:
+        return _getHandType(tuple(hand), tuple(board))
+    
+    return _getHandType(tuple(hand))
+
+@lru_cache(maxsize=4096)
+def _getHandType(hand: Tuple[str], board: Tuple[str] = None) -> Union[ Tuple[str, List[str]], Tuple[HandType, List[str]] ]:
+    if board is None:
         return _getPreflopHandType(hand), hand
     else:    
         d_hand = [Card().new(c) for c in hand]
@@ -141,7 +160,11 @@ def getLongestStraight(hand: List[str], board: List[str]) -> Tuple[int, str, str
 
         NB! this function only returns the first found start and end ranks if there are mutiple consecutive ranked cards of the same length
     '''
-    cardRanks = [RANKS.index(c[0]) for c in hand + board]
+    return _getLongestStraight(tuple(hand + board))
+
+@lru_cache(maxsize=4096)
+def _getLongestStraight(cards: Tuple[str]) -> Tuple[int, str, str]:
+    cardRanks = [RANKS.index(c[0]) for c in cards]
     if RANKS.index('A') in cardRanks:
         cardRanks.append(-1) # add low ace
     cardRanksSet = set(cardRanks)
@@ -175,7 +198,11 @@ def getHighestSuitCount(hand: List[str], board: List[str]) -> Tuple[int, str]:
 
         NB! this function only returns the first suit if there are mutiple suits with the same count
     '''
-    suits = [c[1] for c in hand + board]
+    return _getHighestSuitCount(tuple(hand + board))
+
+@lru_cache(maxsize=4096)
+def _getHighestSuitCount(cards: Tuple[str]) -> Tuple[int, str]:
+    suits = [c[1] for c in cards]
     highestCount = 0
     highestCountSuit = ''
     for s in SUITS:
@@ -200,6 +227,11 @@ def getBoardHandType(board: List[str]) -> HandType:
             board = ['4s', '7s', 'Kh', 'Kc']
             returns HandType.PAIR
     '''
+    return _getBoardHandType(tuple(board))
+
+
+@lru_cache(maxsize=4096)
+def _getBoardHandType(board: Tuple[str]) -> HandType:
     if len(board) >= 5:
         return getHandType(board[:2], board[2:])[0]
     else:

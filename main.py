@@ -1,8 +1,10 @@
+from utils.handValue import _getHandPercent, _getHandType, _getPreflopHandType, _getBoardHandType, _getHighestSuitCount, _getLongestStraight
 from environment.observers.LoggingObserver import LoggingObserver
 from environment.FixedLimitPoker import FixedLimitPoker
 from bots import TemplateBot, CounterBot, PercentBot
-import pandas as pd
 import itertools
+import time
+start_time = time.time()
 
 
 def debug():
@@ -26,7 +28,9 @@ def benchmark():
     combinations = list(itertools.combinations(bots, 2))
     roundsPerPair = 1000
     cols = [x.name for x in bots]
-    stats = pd.DataFrame(0, columns=cols, index=cols + ["sum", "pr. round"])
+    # Import only pandas if we need to, since it's slow.
+    from pandas import DataFrame
+    stats = DataFrame(0, columns=cols, index=cols + ["sum", "pr. round"])
     for c in combinations:
         room = FixedLimitPoker(c, punishSlowBots=False)
         for _ in range(roundsPerPair):
@@ -43,5 +47,13 @@ def benchmark():
     print(stats)
 
 
-# benchmark()
-debug()
+if __name__ == '__main__':
+    benchmark()
+    # debug()
+    print(f"_getHandPercent: {_getHandPercent.cache_info()}")
+    print(f"_getHandType: {_getHandType.cache_info()}")
+    print(f"_getPreflopHandType: {_getPreflopHandType.cache_info()}")
+    print(f"_getBoardHandType: {_getBoardHandType.cache_info()}")
+    print(f"_getHighestSuitCount: {_getHighestSuitCount.cache_info()}")
+    print(f"_getLongestStraight: {_getLongestStraight.cache_info()}")
+    print("--- Total time: %s seconds ---" % (time.time() - start_time))
