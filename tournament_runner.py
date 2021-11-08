@@ -93,17 +93,20 @@ def get_bots():
         dotted_name = m.replace(
             join(dirname(__file__)) + sep, "").replace(sep, ".").replace(".py", "")
         # import the file as a module
-        imp = importlib.import_module(dotted_name, package=__name__)
-        class_name = dotted_name.split(".")[-1]
-        # get its constructor
-        with open(m, "r") as f:
-            match = [regex.match(l) for l in f.readlines() if regex.match(l)]
-            if len(match) > 0:
-                class_name = match[0].group(1)
-        model = getattr(imp, class_name)
-        # make instance of class
-        NClass = model()
-        bots.append(NClass)
+        try:
+            imp = importlib.import_module(dotted_name, package=__name__)
+            class_name = dotted_name.split(".")[-1]
+            # get its constructor
+            with open(m, "r") as f:
+                match = [regex.match(l) for l in f.readlines() if regex.match(l)]
+                if len(match) > 0:
+                    class_name = match[0].group(1)
+            model = getattr(imp, class_name)
+            # make instance of class
+            NClass = model()
+            bots.append(NClass)
+        except Exception as ex:
+            print(ex)
     return bots
 
 
