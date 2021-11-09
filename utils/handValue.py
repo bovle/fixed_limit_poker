@@ -1,14 +1,29 @@
 from functools import lru_cache
+import itertools
 import pickle
-from typing import Dict, List, Sequence, Tuple, Union
+from typing import List, Sequence, Tuple, Union
 from collections import defaultdict
 from environment.Constants import RANKS, SUITS, HandType
 from utils.deuces.card import Card
 from utils.deuces.evaluator import Evaluator
+from utils.deuces.lookup import LookupTable
+import time
 
 evaluator = Evaluator()
 with open('./utils/preflopHandRankings.pckl', 'rb') as rankingsFile:
-    rankings = pickle.load(rankingsFile)
+    preflopRankings = pickle.load(rankingsFile)
+
+lazy = True
+if lazy:
+    print("Using precomputed handranks!")
+    start_time = time.time()
+    with open('./utils/allhandranks.pckl', 'rb') as rankingsFile:
+        fivecardRankings = pickle.load(rankingsFile)
+    print("--- Loading picle took: %s seconds ---" %
+          (time.time() - start_time))
+else:
+    print("Calculating handranks manually ...")
+
 
 @lru_cache(maxsize=4096)
 def _getPreflopHandType(hand: Tuple[str]) -> str:
@@ -20,6 +35,24 @@ def _getPreflopHandType(hand: Tuple[str]) -> str:
         return hand[0][0] + hand[1][0] + 's'
     else:
         return hand[0][0] + hand[1][0] + 'o'
+
+
+def lazyGetHandPercent(hand: Sequence[str], board: Sequence[str] = []) -> Tuple[float, List[str]]:
+    minimum = LookupTable.MAX_HIGH_CARD + 1
+    all5cardcombobs = itertools.combinations(hand + board, 5)
+    resCards = None
+    for combo in all5cardcombobs:
+        # order alphabetically
+        sortedCombo = sorted(combo)
+        key = tuple([Card().new(c) for c in sortedCombo])
+        score = fivecardRankings[key]
+        if score < minimum:
+            minimum = score
+            resCards = combo
+
+    assert resCards is not None, f"ERROR: resCards was None: {list(hand + board)}"
+    return minimum / LookupTable.MAX_HIGH_CARD, resCards
+
 
 def getHandPercent(hand: Sequence[str], board: Sequence[str] = []) -> Tuple[float, List[str]]:
     ''' 
@@ -56,8 +89,8 @@ def getHandPercent(hand: Sequence[str], board: Sequence[str] = []) -> Tuple[floa
                 this function therefore returns (12+1814)/1326 = 1... = 100%
 
                 2 and 3 not of the same suit is in the top 100% of all 2 card hands
-            
-        
+
+
         if the board is given:
             calculates the best 5 card hand out of all input cards
 
@@ -74,9 +107,13 @@ def getHandPercent(hand: Sequence[str], board: Sequence[str] = []) -> Tuple[floa
 
     '''
     if len(board) > 0:
-        return _getHandPercent(tuple(hand), tuple(board))
-    
+        if lazy:
+            return lazyGetHandPercent(hand, board)
+        else:
+            return _getHandPercent(tuple(hand), tuple(board))
+
     return _getHandPercent(tuple(hand))
+
 
 @lru_cache(maxsize=2**16)
 def _getHandPercent(hand: Tuple[str], board: Tuple[str] = None) -> Tuple[float, List[str]]:
@@ -85,16 +122,17 @@ def _getHandPercent(hand: Tuple[str], board: Tuple[str] = None) -> Tuple[float, 
     """
     if board is None:
         preflopHandType = _getPreflopHandType(hand)
-        return rankings[preflopHandType], hand
+        return preflopRankings[preflopHandType], hand
     else:
         d_hand = [Card().new(c) for c in hand]
         d_board = [Card().new(c) for c in board]
         rank, cards = evaluator.evaluate(d_hand, d_board)
-        percentage = evaluator.get_five_card_rank_percentage(rank)  # lower better here
+        percentage = evaluator.get_five_card_rank_percentage(
+            rank)  # lower better here
         return percentage, [Card.int_to_pretty_str(c) for c in cards]
 
 
-def getHandType(hand: List[str], board: List[str] = []) -> Union[ Tuple[str, List[str]], Tuple[HandType, List[str]] ]:
+def getHandType(hand: List[str], board: List[str] = []) -> Union[Tuple[str, List[str]], Tuple[HandType, List[str]]]:
     '''
         calculates the hand type of the hand
             Parameters:
@@ -128,18 +166,19 @@ def getHandType(hand: List[str], board: List[str] = []) -> Union[ Tuple[str, Lis
                 board = ['As', '7s', 'Kh', '2d', 'Kc']
 
                 returns (HandType.TWOPAIR, ['Ah', 'As', '7s', 'Kh', 'Kc'])
-        
-    '''    
+
+    '''
     if len(board) > 0:
         return _getHandType(tuple(hand), tuple(board))
-    
+
     return _getHandType(tuple(hand))
 
+
 @lru_cache(maxsize=4096)
-def _getHandType(hand: Tuple[str], board: Tuple[str] = None) -> Union[ Tuple[str, List[str]], Tuple[HandType, List[str]] ]:
+def _getHandType(hand: Tuple[str], board: Tuple[str] = None) -> Union[Tuple[str, List[str]], Tuple[HandType, List[str]]]:
     if board is None:
         return _getPreflopHandType(hand), hand
-    else:    
+    else:
         d_hand = [Card().new(c) for c in hand]
         d_board = [Card().new(c) for c in board]
         rank, cards = evaluator.evaluate(d_hand, d_board)
@@ -162,16 +201,17 @@ def getLongestStraight(hand: List[str], board: List[str]) -> Tuple[int, str, str
     '''
     return _getLongestStraight(tuple(hand + board))
 
+
 @lru_cache(maxsize=4096)
 def _getLongestStraight(cards: Tuple[str]) -> Tuple[int, str, str]:
     cardRanks = [RANKS.index(c[0]) for c in cards]
     if RANKS.index('A') in cardRanks:
-        cardRanks.append(-1) # add low ace
+        cardRanks.append(-1)  # add low ace
     cardRanksSet = set(cardRanks)
 
     ans = 0
     startRank = 0
-    for rank in cardRanksSet:  
+    for rank in cardRanksSet:
         j = rank + 1
 
         while j in cardRanksSet:
@@ -180,10 +220,11 @@ def _getLongestStraight(cards: Tuple[str]) -> Tuple[int, str, str]:
         if j - rank > ans:
             ans = j - rank
             startRank = rank
-    
+
     if startRank == -1:
         return ans, "A", RANKS[startRank + ans - 1]
     return ans, RANKS[startRank], RANKS[startRank + ans - 1]
+
 
 def getHighestSuitCount(hand: List[str], board: List[str]) -> Tuple[int, str]:
     '''
@@ -200,6 +241,7 @@ def getHighestSuitCount(hand: List[str], board: List[str]) -> Tuple[int, str]:
     '''
     return _getHighestSuitCount(tuple(hand + board))
 
+
 @lru_cache(maxsize=4096)
 def _getHighestSuitCount(cards: Tuple[str]) -> Tuple[int, str]:
     suits = [c[1] for c in cards]
@@ -212,6 +254,7 @@ def _getHighestSuitCount(cards: Tuple[str]) -> Tuple[int, str]:
             highestCountSuit = s
     return highestCount, highestCountSuit
 
+
 def getBoardHandType(board: List[str]) -> HandType:
     '''
         calculates the hand type of the board
@@ -219,9 +262,9 @@ def getBoardHandType(board: List[str]) -> HandType:
                 board (list[str]): board cards (['Ah','Jh', 'Th'] or ['3s', '9c', '7h', '8d', 'Jc'] or ...)
             returns:
                 (HandType) hand type (THREEOFAKIND or PAIR or TWOPAIR or ...)
-        
+
         Calculates the handtype of the board.
-        
+
         This is usefull to calculate if your hand is part of the best hand.
         example:
             board = ['4s', '7s', 'Kh', 'Kc']
@@ -251,4 +294,3 @@ def _getBoardHandType(board: Tuple[str]) -> HandType:
             elif counts[0] == 4:
                 return HandType.FOUROFAKIND
     return HandType.HIGHCARD
-

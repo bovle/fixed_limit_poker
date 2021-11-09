@@ -1,10 +1,11 @@
+import time
+start_time = time.time()
+
 from utils.handValue import _getHandPercent, _getHandType, _getPreflopHandType, _getBoardHandType, _getHighestSuitCount, _getLongestStraight
 from environment.observers.LoggingObserver import LoggingObserver
 from environment.FixedLimitPoker import FixedLimitPoker
-from bots import TemplateBot, CounterBot, PercentBot
+from bots import CounterBot, PercentBot, TemplateBot
 import itertools
-import time
-start_time = time.time()
 
 
 def debug():
