@@ -1,4 +1,4 @@
-from copy import deepcopy
+import pickle
 import time
 from typing import Dict, List, Tuple
 
@@ -33,7 +33,7 @@ class FixedLimitPoker:
     actionHistory: Dict[Player, Dict[Stage, Dict[Action, int]]]
     debugMode: bool
 
-    def __init__(self, players: List[BotInterface], smallBlind=5, bigBlind=10, stackSize = 1000, observers=[], punishSlowBots=True):
+    def __init__(self, players: List[BotInterface], smallBlind=5, bigBlind=10, stackSize=1000, observers=[], punishSlowBots=True):
         self.players = [Player(player) for player in players]
         self.numPlayers = len(self.players)
         self.smallBlind = smallBlind
@@ -45,7 +45,7 @@ class FixedLimitPoker:
         self.actionHistory = {}
         self.debugMode = False
 
-    def reset(self, rotatePlayers=False, stackedDeck:List[str]=[]) -> Tuple[List[Action],Observation,int,bool]:    
+    def reset(self, rotatePlayers=False, stackedDeck: List[str] = []) -> Tuple[List[Action], Observation, int, bool]:
         self.boardCards = []
         self.activePlayerQueue = []
         self.stage = Stage.PREFLOP
@@ -69,10 +69,10 @@ class FixedLimitPoker:
             result = self.step(action)
             return result
         return (self.actionSpace, self.getObservation(), 0, False)
-    
+
     def rotatePlayers(self) -> None:
         self.players.append(self.players.pop(0))
-    
+
     def updateActionHistory(self, action):
         bot_name = self.getCurrentPlayer().bot.name
         if bot_name not in self.actionHistory:
@@ -86,8 +86,7 @@ class FixedLimitPoker:
 
         self.actionHistory[bot_name][self.stage][action] += 1
 
-
-    def step(self, action:Action) -> Tuple[List[Action],Observation,int,bool] :
+    def step(self, action: Action) -> Tuple[List[Action], Observation, int, bool]:
         if not action in self.actionSpace:
             action = self.getNearestAllowedAction(action)
         self.executeStep(action)
@@ -95,16 +94,16 @@ class FixedLimitPoker:
 
         if self.debugMode:
             self.updateActionHistory(action)
-        
+
         if self.isRoundOver():
-            
+
             if len(self.activePlayerQueue) == 1:
                 self.stage = Stage.END_HIDDEN
             else:
                 self.stage = Stage(self.stage.value+1)
             self.newRound()
             self.observeNewRound()
-        
+
         if self.stage == Stage.END_HIDDEN or self.stage == Stage.SHOWDOWN:
             winnerPositions = self.getWinnerPositions()
             self.giveRewards(winnerPositions)
@@ -113,7 +112,7 @@ class FixedLimitPoker:
                 if not player.isAutoPlayer():
                     return ([], self.getObservation(), player.reward, True)
             return ([], None, 0, True)
-            
+
         self.updateActionSpace()
         if self.getCurrentPlayer().isAutoPlayer():
             move = self.getAutoPlayerMove()
@@ -124,9 +123,10 @@ class FixedLimitPoker:
     def giveRewards(self, winnerPositions: List[int]):
         for player in self.players:
             player.win = player.position in winnerPositions
-            player.reward = self.getReward(player, player.win, len(winnerPositions))
+            player.reward = self.getReward(
+                player, player.win, len(winnerPositions))
 
-    def getReward(self, player:Player, win:bool, numWinners:int = 1):
+    def getReward(self, player: Player, win: bool, numWinners: int = 1):
         wagered = (self.stackSize - player.stack)
         if win:
             return int(self.totalPot / numWinners) - wagered
@@ -151,7 +151,6 @@ class FixedLimitPoker:
             elif val == winnerVal:
                 winners.append(i)
         return winners
-        
 
     def newRound(self) -> None:
         self.activePlayerQueue = sorted(self.activePlayerQueue)
@@ -163,12 +162,12 @@ class FixedLimitPoker:
             self.boardCards = self.deck.drawMultiple(3)
         elif self.stage.value <= Stage.RIVER.value:
             self.boardCards.append(self.deck.draw())
-        
+
     def updateActionSpace(self) -> None:
         actions = []
         if self.raiseCount == 0 and (self.stage != Stage.PREFLOP or            # after first round no raisers
-            (self.stage == Stage.PREFLOP and self.activePlayerQueue[0] == 1)): # first round all call/fold to big blind
-                actions.append(Action.CHECK)
+                                     (self.stage == Stage.PREFLOP and self.activePlayerQueue[0] == 1)):  # first round all call/fold to big blind
+            actions.append(Action.CHECK)
         else:
             actions.append(Action.FOLD)
             if self.getCurrentPlayer().stack >= self.getCallAmount():
@@ -176,18 +175,16 @@ class FixedLimitPoker:
 
         if self.raiseCount != 4 and self.getCurrentPlayer().stack > self.getCallAmount():
             actions.append(Action.RAISE)
-            
+
         self.actionSpace = actions
 
-
-    def nextPlayer(self, action:Action) -> None:
+    def nextPlayer(self, action: Action) -> None:
         if action == Action.FOLD:
             self.activePlayerQueue.pop(0)
         else:
             self.activePlayerQueue.append(self.activePlayerQueue.pop(0))
-            
 
-    def executeStep(self, action:Action) -> None:
+    def executeStep(self, action: Action) -> None:
         currentPlayer = self.getCurrentPlayer()
         currentPlayer.history[self.stage].append(action)
         if action == Action.CHECK:
@@ -199,7 +196,8 @@ class FixedLimitPoker:
             self.postAmount(currentPlayer, amount)
         elif action == Action.RAISE:
             self.raiseCount += 1
-            amount = min(self.getCallAmount() + self.getRaiseAmount(), currentPlayer.stack)
+            amount = min(self.getCallAmount() +
+                         self.getRaiseAmount(), currentPlayer.stack)
             self.postAmount(currentPlayer, amount)
         self.observePlayerAction(currentPlayer, action)
 
@@ -216,7 +214,8 @@ class FixedLimitPoker:
 
     def allChecked(self) -> bool:
         bigBlindHistory = self.players[1].history[self.stage]
-        if self.stage == Stage.PREFLOP and len(bigBlindHistory) > 0 and bigBlindHistory[0] == Action.CHECK: #preflop and bigblind checked
+        # preflop and bigblind checked
+        if self.stage == Stage.PREFLOP and len(bigBlindHistory) > 0 and bigBlindHistory[0] == Action.CHECK:
             return True
         for player in self.players:
             if player.active:
@@ -232,8 +231,8 @@ class FixedLimitPoker:
             if player.active:
                 contributions.append(player.contribution)
         return len(set(contributions)) == 1
-        
-    def getNearestAllowedAction(self, action:Action) -> Action:
+
+    def getNearestAllowedAction(self, action: Action) -> Action:
         if action == Action.RAISE:
             return Action.CALL
         elif action == Action.CALL or action == Action.FOLD:
@@ -248,10 +247,12 @@ class FixedLimitPoker:
             actTime = time.time() - startTime
             if self.punishSlowBots and actTime >= 1:
                 move = Action.FOLD
-                print(f"Bot: '{self.getCurrentPlayer().bot.name}' took too long ({actTime}) to return. Folding on their behalf.")
+                print(
+                    f"Bot: '{self.getCurrentPlayer().bot.name}' took too long ({actTime}) to return. Folding on their behalf.")
         except Exception as ex:
             move = Action.FOLD
-            print(f"Bot: '{self.getCurrentPlayer().bot.name}' caused an exception!!! Folding on their behalf.")
+            print(
+                f"Bot: '{self.getCurrentPlayer().bot.name}' caused an exception!!! Folding on their behalf.")
             print(ex)
         return move
 
@@ -273,12 +274,13 @@ class FixedLimitPoker:
         playerObs.contribution = player.contribution
         playerObs.name = player.bot.name
         playerObs.position = player.position
-        playerObs.history =  player.history
+        # This is a dumb way of doing a deepcopy, but it's faster!
+        playerObs.history = pickle.loads(pickle.dumps(
+            player.history, -1))
         playerObs.reward = player.reward
         playerObs.win = player.win
         return playerObs
 
-        
     def getCurrentPlayer(self) -> Player:
         return self.players[self.activePlayerQueue[0]]
 
@@ -287,7 +289,8 @@ class FixedLimitPoker:
             player.hand = self.deck.drawMultiple(2)
 
     def getCallAmount(self) -> int:
-        maxContribution = max(self.players, key=lambda p: p.contribution).contribution
+        maxContribution = max(
+            self.players, key=lambda p: p.contribution).contribution
         return maxContribution - self.getCurrentPlayer().contribution
 
     def getRaiseAmount(self) -> int:
@@ -304,8 +307,8 @@ class FixedLimitPoker:
         playerBigBlind = self.players[self.activePlayerQueue[0]]
         self.postAmount(playerBigBlind, self.bigBlind)
         self.activePlayerQueue.append(self.activePlayerQueue.pop(0))
-        
-    def postAmount(self, player:Player, amount:int) -> None:
+
+    def postAmount(self, player: Player, amount: int) -> None:
         player.postAmount(amount)
         self.stagePot += amount
         self.totalPot += amount
@@ -319,7 +322,7 @@ class FixedLimitPoker:
 
         for observer in self.observers:
             observer.LogNewGame(obs)
-            
+
     def observeNewRound(self):
         # Don't do any work if no observers exist
         if not self.observers:
@@ -356,6 +359,8 @@ class FixedLimitPoker:
         omniObservation.boardCards = list(self.boardCards)
         omniObservation.stagePot = self.stagePot
         omniObservation.totalPot = self.totalPot
-        omniObservation.players = list([self.getPlayerObs(player) for player in self.players])
-        omniObservation.hands = { player.bot.name: player.hand for player in self.players }
+        omniObservation.players = list(
+            [self.getPlayerObs(player) for player in self.players])
+        omniObservation.hands = {
+            player.bot.name: player.hand for player in self.players}
         return omniObservation
