@@ -1,7 +1,6 @@
 from unittest import TestCase
 from environment.Constants import SUITS, HandType
 from utils import handValue
-import time
 
 
 class TestUtils(TestCase):
@@ -101,3 +100,13 @@ class TestUtils(TestCase):
         val = handValue.getBoardHandType(board)
         self.assertEqual(val, HandType.FOUROFAKIND)
         print()
+
+    def testLazyPercent(self):
+        hand = ["7h", "Kh"]
+        community = ["Qh", "Jh", "Th", "9h", "8h"]
+        lazyValue, lazyCards = handValue.lazyGetHandPercent(hand, community)
+        value, cards = handValue.getHandPercent(hand, community)
+        self.assertEqual(lazyValue, value)
+        self.assertSequenceEqual(lazyCards, cards)
+        print(value)
+        print(cards)
