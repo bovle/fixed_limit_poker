@@ -4,33 +4,39 @@ import multiprocessing as mp
 import queue
 import time
 from random import randint
+from typing import List
 
 import pandas as pd
 
+from environment.Deck import Deck
 from bots import CounterBot, PercentBot
+from bots.BotInterface import BotInterface
 from environment.FixedLimitPoker import FixedLimitPoker
+from bots.tournament_bots.round_6 import abots, ANLI, BotimusPrime, FalBot, Spooky, Mobot, IdaBot
 
-PARTICIPANTS = [
-    CounterBot("Counter"),
-    CounterBot("Counter-Strike"),
-    PercentBot("Free"),
-    PercentBot("Guy"),
-    PercentBot("Percent"),
+PARTICIPANTS: List[BotInterface] = [
+    abots.Abots(),
+    ANLI.ANLI(),
+    BotimusPrime.BotimusPrime(),
+    FalBot.FalBot(),
+    Spooky.SpookyBot(),
+    Mobot.Mobot(),
+    IdaBot.IdaBOT()
 ]
 TOTAL_ROUNDS = 1000
 PROCESS_COUNT = mp.cpu_count() - 2
 TIMESTAMP = round(time.time())
 
 
-def play(jobQueue: mp.Queue, roundsPerRoom: int, stats):
+def play(jobQueue: mp.Queue, roundsPerRoom: int, hands: List[List[str]], stats):
     while not jobQueue.empty():
         try:
             c = jobQueue.get(block=False)
         except queue.Empty:
             break
         room = FixedLimitPoker(c)
-        for _ in range(roundsPerRoom):
-            room.reset(rotatePlayers=True)
+        for i in range(roundsPerRoom):
+            room.reset(rotatePlayers=True,stackedDeck=hands[i])
             p1 = room.players[0]
             p2 = room.players[1]
             k1 = (p1.bot.name, p2.bot.name)
@@ -55,12 +61,19 @@ def deduplicate_player_names():
 def main():
     deduplicate_player_names()
     combinations = list(itertools.combinations(PARTICIPANTS, 2))
-    rounds_for_each_pair = math.floor(TOTAL_ROUNDS / len(combinations))
-
+    rounds_for_each_pair = 100# math.floor(TOTAL_ROUNDS / len(combinations))
+    start_time = time.time()
+    hands: List[List[str]] = []
+    for _ in range(int((rounds_for_each_pair+1)/2)):
+        deck = Deck()
+        hand1 = deck.drawMultiple(2)
+        hand2 = deck.drawMultiple(2)
+        board = deck.drawMultiple(5)
+        hands.append(hand1 + hand2 + board)
+        hands.append(hand1 + hand2 + board)
     print(f"There are {len(combinations)} combinations")
     print(f"Each combination will be played: {rounds_for_each_pair} times")
 
-    start_time = time.time()
     manager = mp.Manager()
     stats = manager.dict()
     jobs = mp.Queue()
@@ -69,13 +82,14 @@ def main():
 
     processes = []
     for _ in range(PROCESS_COUNT):
-        p = mp.Process(target=play, args=(jobs, rounds_for_each_pair, stats))
+        p = mp.Process(target=play, args=(jobs, rounds_for_each_pair, hands, stats))
         processes.append(p)
         p.start()
 
     for p in processes:
         p.join()
-
+    duration = time.time() - start_time
+    print(duration)
     cols = [x.name for x in PARTICIPANTS]
     res = pd.DataFrame(0, columns=cols, index=cols + ["sum", "pr. round"])
     for key in stats.keys():
@@ -88,7 +102,7 @@ def main():
 
     print(res)
 
-    duration = time.time() - start_time
+    
     rounds = rounds_for_each_pair * len(combinations)
     duration_pr_sim = round(duration/rounds, 5)
     print(f"-----------------------------------------")

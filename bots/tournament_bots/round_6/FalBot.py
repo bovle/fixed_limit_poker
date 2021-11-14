@@ -82,7 +82,7 @@ class FalBot(BotInterface):
         # else fold
         return Action.FOLD
 
-    def handInBest(self, hand: Sequence[str], usedCards: list[str]) -> bool:
+    def handInBest(self, hand: Sequence[str], usedCards: List[str]) -> bool:
         for c in hand:
             if (c in usedCards):
                 return True

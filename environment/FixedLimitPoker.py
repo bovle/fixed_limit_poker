@@ -61,7 +61,7 @@ class FixedLimitPoker:
         self.postBlinds()
         self.deck = Deck()
         if len(stackedDeck) > 0:
-            self.deck.cards = stackedDeck
+            self.deck.cards = stackedDeck[:]
         self.dealHands()
         self.observeNewGame()
         if self.getCurrentPlayer().isAutoPlayer():
