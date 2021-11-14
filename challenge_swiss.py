@@ -7,6 +7,8 @@ import queue
 import time
 from random import randint
 from typing import List
+from pprint import pprint
+from numpy import mat
 
 import pandas as pd
 
@@ -31,7 +33,7 @@ PROCESS_COUNT = mp.cpu_count() - 2
 TIMESTAMP = round(time.time())
 
 
-def play(bots, roundsPerRoom: int, hands: List[List[str]]):
+def play(bots, roundsPerRoom: int, hands: List[List[str]]) -> dict[str, int]:
     room = FixedLimitPoker(bots)
     res = defaultdict(int)
     for i in range(roundsPerRoom):
@@ -41,7 +43,7 @@ def play(bots, roundsPerRoom: int, hands: List[List[str]]):
         res[p1.bot.name] += p1.reward
         res[p2.bot.name] += p2.reward
 
-    return p1.bot.name if res[p1.bot.name] > res[p2.bot.name] else (p2.bot.name if res[p2.bot.name] > res[p1.bot.name] else None) 
+    return res #p1.bot.name if res[p1.bot.name] > res[p2.bot.name] else (p2.bot.name if res[p2.bot.name] > res[p1.bot.name] else None) 
 
 
 def deduplicate_player_names():
@@ -70,7 +72,7 @@ def main():
     print(f"There are {len(combinations)} combinations")
     print(f"Each combination will be played: {rounds_for_each_pair} times")
 
-    matchupsPlayed = []
+    matchupsPlayed = defaultdict(lambda: set())
     byes = []
     points = {}
     for p in PARTICIPANTS:
@@ -79,7 +81,9 @@ def main():
     controller = Controller(PROCESS_COUNT, play)
         
     for round in range(math.ceil(math.log2(len(PARTICIPANTS)))+1):
+        roundMatchups = dict()
         sortedBots: List = sorted(points, key=points.get, reverse=True)
+        print(f"----------- round: {round} -------")
         print(sortedBots)
         print(matchupsPlayed)
         print(byes)
@@ -91,25 +95,33 @@ def main():
                 index -= 1
             byeName = sortedBots.pop(index)
             byes.append(byeName)
-            points[byeName] += 1
+            # points[byeName] += 1
         while len(sortedBots) != 0:
             bot1Name = sortedBots.pop(0)
             bot1 = next(x for x in PARTICIPANTS if x.name == bot1Name)
-            bot2Idx = 0
-            while(sorted((bot1Name, sortedBots[bot2Idx])) in matchupsPlayed): #index out of range exception
-                bot2Idx += 1
-            bot2Name = sortedBots.pop(bot2Idx)
+
+            opponentCandidates = [b for b in sortedBots if b not in matchupsPlayed[bot1Name]]
+            if len(opponentCandidates) == 0:
+                print(f"Could not find an unplayed opponent for: {bot1Name}")
+                opponentCandidates = [sortedBots[0]]
+
+            bot2Name = opponentCandidates.pop()
+            sortedBots.remove(bot2Name)
+
             bot2 = next(x for x in PARTICIPANTS if x.name == bot2Name)
             jobs.append([[bot1, bot2], rounds_for_each_pair, hands])
-            matchupsPlayed.append(sorted((bot1Name, bot2Name)))
+            matchupsPlayed[bot1Name].add(bot2Name)
+            matchupsPlayed[bot2Name].add(bot1Name)
+            roundMatchups[bot1Name] = bot2Name
+            roundMatchups[bot2Name] = bot1Name
             
         controller.addJobs(jobs)
         controller.waitForJobsFinish()
         results = controller.getResults()
         print(results)
         for res in results:
-            if res is not None:
-                points[res] += 1
+            for player_name, value in res.items():
+                points[player_name] += value
 
     controller.joinAll()
 
@@ -120,4 +132,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    res = main()
+    pprint(res)
