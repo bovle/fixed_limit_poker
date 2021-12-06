@@ -8,14 +8,14 @@ class TestActions(TestCase):
 
     def testFold(self):
         env = FixedLimitPoker([UnitTesterBot(actions=[Action.FOLD]), EmptyBot()])
-        actionSpace,_,reward,isDone = env.reset()
+        actionSpace,_,reward,isDone = env.reset(rotatePlayers=False)
         self.assertListEqual([], actionSpace)
         self.assertTrue(isDone)
         self.assertEqual(5, reward)
 
     def testCallCheck(self):
         env = FixedLimitPoker([UnitTesterBot(actions=[Action.CALL, Action.CHECK]), EmptyBot()])
-        actionSpace,obs,reward,isDone = env.reset()
+        actionSpace,obs,reward,isDone = env.reset(rotatePlayers=False)
         self.assertListEqual([Action.CHECK, Action.RAISE], actionSpace)
         self.assertFalse(isDone)
         self.assertEqual(0, reward)
@@ -30,7 +30,7 @@ class TestActions(TestCase):
 
     def testCallRaiseCall(self):
         env = FixedLimitPoker([UnitTesterBot(actions=[Action.CALL, Action.CALL, Action.CHECK]), EmptyBot()])
-        actionSpace,obs,reward,isDone = env.reset()
+        actionSpace,obs,reward,isDone = env.reset(rotatePlayers=False)
         self.assertListEqual([Action.CHECK, Action.RAISE], actionSpace)
         self.assertFalse(isDone)
         self.assertEqual(0, reward)
@@ -45,7 +45,7 @@ class TestActions(TestCase):
 
     def testCallRaiseRaiseCall(self):
         env = FixedLimitPoker([UnitTesterBot(actions=[Action.CALL, Action.RAISE, Action.CHECK]), EmptyBot()])
-        actionSpace,obs,reward,isDone = env.reset()
+        actionSpace,obs,reward,isDone = env.reset(rotatePlayers=False)
         self.assertListEqual([Action.CHECK, Action.RAISE], actionSpace)
         self.assertFalse(isDone)
         self.assertEqual(0, reward)
@@ -67,7 +67,7 @@ class TestActions(TestCase):
     def test4RaiseIsMax(self):
         env = FixedLimitPoker([UnitTesterBot(actions=[Action.CALL, Action.RAISE, Action.RAISE]), EmptyBot()])
 
-        actionSpace,obs,reward,isDone = env.reset()
+        actionSpace,obs,reward,isDone = env.reset(rotatePlayers=False)
         self.assertListEqual([Action.CHECK, Action.RAISE], actionSpace)
         self.assertFalse(isDone)
         self.assertEqual(0, reward)
@@ -93,7 +93,7 @@ class TestActions(TestCase):
 
     def testFoldWhenCheckIsAllowed(self):
         env = FixedLimitPoker([UnitTesterBot(actions=[Action.CALL, Action.CHECK]), EmptyBot()])
-        actionSpace,obs,reward,isDone = env.reset(stackedDeck=["As","Ah",  "2c","3c",  "Ad","Ac","Kc","Ks","Ts"])
+        actionSpace,obs,reward,isDone = env.reset(rotatePlayers=False, stackedDeck=["As","Ah",  "2c","3c",  "Ad","Ac","Kc","Ks","Ts"])
         self.assertListEqual([Action.CHECK, Action.RAISE], actionSpace)
         self.assertFalse(isDone)
         self.assertEqual(0, reward)

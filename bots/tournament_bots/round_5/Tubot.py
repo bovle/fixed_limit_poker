@@ -9,7 +9,6 @@ from environment.Player import Player
 from environment.PlayerObservation import PlayerObservation
 from utils import handValue
 from utils.createHandRankings import *
-from utils.deuces import *
 from utils.handValue import *
 
 # your bot class, rename to match the file name

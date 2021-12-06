@@ -15,8 +15,8 @@ def debug():
         PercentBot(),
         TemplateBot()
     ], observers=observers, punishSlowBots=False)
+    env.reset(rotatePlayers=False)
     env.reset()
-    env.reset(rotatePlayers=True)
 
 
 def benchmark():
@@ -35,7 +35,7 @@ def benchmark():
     for c in combinations:
         room = FixedLimitPoker(c, punishSlowBots=False)
         for _ in range(roundsPerPair):
-            room.reset(rotatePlayers=True)
+            room.reset()
             p1 = room.players[0]
             p2 = room.players[1]
             stats[p1.bot.name][p2.bot.name] += p1.reward

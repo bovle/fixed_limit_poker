@@ -1,7 +1,7 @@
 import pickle
 import time
-from deuces.evaluator import Evaluator
-from deuces.card import Card
+from environment.deuces.evaluator import Evaluator
+from environment.deuces.card import Card
 
 
 RANKS = sorted('23456789TJQKA')

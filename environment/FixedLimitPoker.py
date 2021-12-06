@@ -9,8 +9,8 @@ from environment.Observation import Observation
 from environment.observers import Observer, OmnipotentObservation
 from environment.Player import Player
 from environment.PlayerObservation import PlayerObservation
-from utils.deuces.card import Card
-from utils.deuces.evaluator import Evaluator
+from environment.deuces.card import Card
+from environment.deuces.evaluator import Evaluator
 
 
 class FixedLimitPoker:

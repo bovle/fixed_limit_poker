@@ -10,7 +10,7 @@ class TestStability(TestCase):
         ut_bot = UnitTesterBot(actions=[Action.RAISE])
         env = FixedLimitPoker(
             [ut_bot, ExceptionBot()])
-        _, _, _, isDone = env.reset()
+        _, _, _, isDone = env.reset(rotatePlayers=False)
         winner_position = env.getWinnerPositions()[0]
         winner = env.players[winner_position]
         self.assertTrue(
@@ -22,7 +22,7 @@ class TestStability(TestCase):
         ut_bot = UnitTesterBot(actions=[Action.RAISE, Action.FOLD])
         env = FixedLimitPoker(
             [ut_bot, StallBot(stallTime=1)])
-        _, _, _, isDone = env.reset()
+        _, _, _, isDone = env.reset(rotatePlayers=False)
         winner_position = env.getWinnerPositions()[0]
         winner = env.players[winner_position]
         self.assertTrue(

@@ -30,7 +30,7 @@ def play(jobQueue: mp.Queue, roundsPerRoom: int, stats):
             break
         room = FixedLimitPoker(c)
         for _ in range(roundsPerRoom):
-            room.reset(rotatePlayers=True)
+            room.reset()
             p1 = room.players[0]
             p2 = room.players[1]
             k1 = (p1.bot.name, p2.bot.name)

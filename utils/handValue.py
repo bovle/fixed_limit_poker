@@ -4,9 +4,9 @@ import pickle
 from typing import List, Sequence, Tuple, Union
 from collections import defaultdict
 from environment.Constants import RANKS, SUITS, HandType
-from utils.deuces.card import Card
-from utils.deuces.evaluator import Evaluator
-from utils.deuces.lookup import LookupTable
+from environment.deuces.card import Card
+from environment.deuces.evaluator import Evaluator
+from environment.deuces.lookup import LookupTable
 import time
 
 evaluator = Evaluator()

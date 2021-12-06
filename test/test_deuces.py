@@ -1,4 +1,4 @@
-from utils.deuces import Card, Evaluator, Deck
+from environment.deuces import Card, Evaluator, Deck
 from unittest import TestCase
 
 

@@ -27,7 +27,7 @@ def main():
         obs = JsonObserver()
         env = FixedLimitPoker([getBotFromPlayer(players, p) for p in game_data.players], observers=[obs])
         for _ in range(handsPerGame):
-            env.reset(rotatePlayers=True)
+            env.reset()
         infoObj, winner = obs.ToSimpleObject(game_id.split('g')[1], game_id.split('g')[0])
         tournament.play_game(game_id, winner)
         games.append(infoObj)
