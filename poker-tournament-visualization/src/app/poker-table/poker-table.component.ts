@@ -18,11 +18,30 @@ export class PokerTableComponent implements OnInit, OnChanges {
 
   player1!: Player;
   player2!: Player;
-  player1Playerstate: PlayerState = {chips_wagered: 0, stack: 1000, next_to_act: false, action: '', score: 0};
-  player2Playerstate: PlayerState= {chips_wagered: 0, stack: 1000, next_to_act: false, action: '', score: 0};
-  player1link="https://media-exp1.licdn.com/dms/image/C5603AQGAUW9uU9JtGw/profile-displayphoto-shrink_200_200/0/1581669563810?e=1640217600&v=beta&t=WHteJ76sNXQZ9l6yySjTvMNTyExfgZtYPa5WRIctkyk"
-  player2link="https://media-exp1.licdn.com/dms/image/C5603AQHxqi2EjCLiKQ/profile-displayphoto-shrink_200_200/0/1580829910259?e=1640217600&v=beta&t=6Ry0x-EzdCjOmgaIcXGoO4jrZv7Uh2ROx2ymfOr3ag4"
+  player1Playerstate: PlayerState = { chips_wagered: 0, stack: 1000, next_to_act: false, action: '', score: 0 };
+  player2Playerstate: PlayerState = { chips_wagered: 0, stack: 1000, next_to_act: false, action: '', score: 0 };
+  player1link = "https://media-exp1.licdn.com/dms/image/C5603AQGAUW9uU9JtGw/profile-displayphoto-shrink_200_200/0/1581669563810?e=1640217600&v=beta&t=WHteJ76sNXQZ9l6yySjTvMNTyExfgZtYPa5WRIctkyk"
+  player2link = "https://media-exp1.licdn.com/dms/image/C5603AQHxqi2EjCLiKQ/profile-displayphoto-shrink_200_200/0/1580829910259?e=1640217600&v=beta&t=6Ry0x-EzdCjOmgaIcXGoO4jrZv7Uh2ROx2ymfOr3ag4"
   pot = 0
+
+  player3!: Player;
+  player4!: Player;
+  player5!: Player;
+  player6!: Player;
+  player7!: Player;
+  player8!: Player;
+  player9!: Player;
+  player10!: Player;
+
+
+  player3Playerstate: PlayerState = { chips_wagered: 0, stack: 1000, next_to_act: false, action: '', score: 0 };
+  player4Playerstate: PlayerState = { chips_wagered: 0, stack: 1000, next_to_act: false, action: '', score: 0 };
+  player5Playerstate: PlayerState = { chips_wagered: 0, stack: 1000, next_to_act: false, action: '', score: 0 };
+  player6Playerstate: PlayerState = { chips_wagered: 0, stack: 1000, next_to_act: false, action: '', score: 0 };
+  player7Playerstate: PlayerState = { chips_wagered: 0, stack: 1000, next_to_act: false, action: '', score: 0 };
+  player8Playerstate: PlayerState = { chips_wagered: 0, stack: 1000, next_to_act: false, action: '', score: 0 };
+  player9Playerstate: PlayerState = { chips_wagered: 0, stack: 1000, next_to_act: false, action: '', score: 0 };
+  player10Playerstate: PlayerState = { chips_wagered: 0, stack: 1000, next_to_act: false, action: '', score: 0 };
 
   constructor() {
   }
@@ -42,18 +61,18 @@ export class PokerTableComponent implements OnInit, OnChanges {
     this.player2Playerstate = this.setPlayerState('player2');
     console.log('playerstate', this)
   }
-  setupGame(){
+  setupGame() {
     this.player1 = this.getPlayer(this.game.hands[this.hand].player1, this.game.player1);
     this.player2 = this.getPlayer(this.game.hands[this.hand].player2, this.game.player2);
     this.history = this.game.hands[this.hand].history;
   }
 
-  getGameScore(player: string){
-    if(player == 'player1'){
+  getGameScore(player: string) {
+    if (player == 'player1') {
       return this.game.hands[this.hand].player1.total_reward_before
     }
     return this.game.hands[this.hand].player2.total_reward_before
-    
+
   }
 
 
@@ -66,44 +85,44 @@ export class PokerTableComponent implements OnInit, OnChanges {
     }
   }
 
-  setPlayerState(player: string): PlayerState{
-    let playerstate: PlayerState = {stack: 0, chips_wagered: 0, next_to_act: false, action: '', score: this.getGameScore(player)};
-    if((this.stage == Stage.Showdown || this.stage == Stage.EndHidden) && this.isPlayerWinner(player, this.game.hands[this.hand])){
+  setPlayerState(player: string): PlayerState {
+    let playerstate: PlayerState = { stack: 0, chips_wagered: 0, next_to_act: false, action: '', score: this.getGameScore(player) };
+    if ((this.stage == Stage.Showdown || this.stage == Stage.EndHidden) && this.isPlayerWinner(player, this.game.hands[this.hand])) {
       playerstate.chips_wagered = this.game.hands[this.hand].abs_reward * 2
-    }else{
+    } else {
       for (let index = 0; index <= this.step; index++) {
         const history = this.history[index];
-        if(history.player == player){
+        if (history.player == player) {
           playerstate.chips_wagered = history.stage_contribution!
           playerstate.stack = history.stack!
         }
-        if(history.pot != null){
+        if (history.pot != null) {
           playerstate.chips_wagered = 0
-        }        
-      } 
+        }
+      }
     }
-     
-    if (this.history.length - 1  > this.step + 1 && this.history[this.step+1].player == player){
+
+    if (this.history.length - 1 > this.step + 1 && this.history[this.step + 1].player == player) {
       playerstate.next_to_act = true
     }
-    if( this.history[this.step].player == player){
+    if (this.history[this.step].player == player) {
       playerstate.action = this.getActionText(this.history[this.step].action)
-    }else{
-      playerstate.action = this.stage == Stage.Showdown ? this.getHandType(player,this.history[this.step]) : ''      
-      
+    } else {
+      playerstate.action = this.stage == Stage.Showdown ? this.getHandType(player, this.history[this.step]) : ''
+
     }
-    return playerstate;    
+    return playerstate;
   }
 
-  isPlayerWinner(player: string, hand: Hand){
-    if(player == 'player1'){
+  isPlayerWinner(player: string, hand: Hand) {
+    if (player == 'player1') {
       return hand.player1.winner
     }
     return hand.player2.winner
   }
 
-  getHandType(player: string,history: History): string{
-    if(player == 'player1'){
+  getHandType(player: string, history: History): string {
+    if (player == 'player1') {
       return history.player1_hand_type!
     }
     return history.player2_hand_type!
@@ -125,30 +144,30 @@ export class PokerTableComponent implements OnInit, OnChanges {
 
     if (this.stage == Stage.Turn) {
       const currenthistory = this.game.hands[this.hand].history[this.getStageIndex(Stage.Turn)]
-      const cards = currenthistory!.board_cards;    
-      pot = currenthistory!.pot!  
+      const cards = currenthistory!.board_cards;
+      pot = currenthistory!.pot!
       if (cards != undefined) {
         community.push(...cards);
       }
     }
     if (this.stage == Stage.River) {
       const currenthistory = this.game.hands[this.hand].history[this.getStageIndex(Stage.River)]
-      const cards = currenthistory!.board_cards;   
+      const cards = currenthistory!.board_cards;
       pot = this.stage == Stage.River ? currenthistory!.pot! : 0
       if (cards != undefined) {
         community.push(...cards);
       }
     }
 
-    if (this.stage == Stage.Showdown || this.stage == Stage.EndHidden){
+    if (this.stage == Stage.Showdown || this.stage == Stage.EndHidden) {
       const currenthistory = this.game.hands[this.hand].history[this.getStageIndex(this.stage)]
-      const cards = currenthistory!.board_cards;   
+      const cards = currenthistory!.board_cards;
       pot = 0
       if (cards != undefined) {
         community.push(...cards);
       }
     }
-    
+
     this.pot = pot
     this.community = community;
   }
@@ -158,39 +177,39 @@ export class PokerTableComponent implements OnInit, OnChanges {
   }
 
 
-  getActionText(action: string){
+  getActionText(action: string) {
     let actionText = "";
-    switch(action) { 
-      case "small_blind": { 
-         actionText = "Small blind";
-         break; 
-      } 
-      case "big_blind": { 
+    switch (action) {
+      case "small_blind": {
+        actionText = "Small blind";
+        break;
+      }
+      case "big_blind": {
         actionText = "Big blind";
-         break; 
+        break;
       }
-      case "RAISE": { 
+      case "RAISE": {
         actionText = "Raise";
-         break; 
+        break;
       }
-      case "CALL": { 
+      case "CALL": {
         actionText = "Call";
-         break; 
+        break;
       }
-      case "FOLD": { 
+      case "FOLD": {
         actionText = "Fold";
-         break; 
+        break;
       }
-      case "CHECK": { 
+      case "CHECK": {
         actionText = "Check";
-         break; 
+        break;
       }
-      default: { 
+      default: {
         actionText = ""
-         break; 
-      }       
-   } 
-   return actionText;
+        break;
+      }
+    }
+    return actionText;
   }
 }
 

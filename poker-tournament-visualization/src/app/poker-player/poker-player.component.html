@@ -1,19 +1,52 @@
-<div class="{{side}}">
+<!-- <div class="{{side}}" *ngIf="seatState !== 'not-active'">
     <p class="score text_glow">Score: {{playerState.score}}$</p>
     <p class="name">{{player.name}}</p>
+
     <div class="background">
-         
-            <div class="head" [ngClass]="{'glow' : playerState.next_to_act}">
-                <img [src]="imgurl">
-                <div class="action text_glow">{{playerState.action}}</div>
-            </div>
+        <div class="head" [ngClass]="{'glow' : playerState.next_to_act}">
+            <img [src]="imgurl">
+            <div class="action text_glow">{{playerState.action}}</div>
+        </div>
         <label class="chips text_glow">Bet: {{playerState.chips_wagered}}$</label>
         <div class="chips_wagered">
             <app-stacker [valor]="playerState.chips_wagered"></app-stacker>
-        </div>        
-        <!--<label class="text_glow">stack: {{playerState.stack}}</label>-->
+        </div>
+        <label class="text_glow">stack: {{playerState.stack}}</label>
         <app-card-group [cards]="player.cards"></app-card-group>
-        
     </div>
 
+</div> -->
+
+
+<div *ngIf="seatState !== 'not-active'" class="player" class="state_{{seatState}}">
+    <div *ngIf="playerState.action" class="player__call">{{playerState.action}}</div>
+    <div>
+        <div class="player__avatar" [ngStyle]="{'background-color':visualSettings[playerNo].color}"
+            [ngClass]="{'glow' : playerState.next_to_act}"><img [src]="imgurl"></div>
+        <div class="player__cards">
+            <app-card-group [cards]="player.cards"></app-card-group>
+        </div>
+        <div class="player__information" [ngStyle]="{'border-color':visualSettings[playerNo].color}">
+            <div class="player__information--name">{{player.name}}</div>
+            <div class="player__information--score">{{playerState.stack}}$</div> <!--  - {{playerNo}}-->
+            <div *ngIf="seatState === 'small-blind'" class="player__information--small-blind">Small blind</div>
+            <div *ngIf="seatState === 'big-blind'" class="player__information--big-blind">Big blind</div>
+        </div>
+    </div>
+
+    <div class="bet"
+        [ngStyle]="{'transform': 'translate('+ visualSettings[playerNo].offsetX + 'px ,' + visualSettings[playerNo].offsetY + 'px)'}">
+        <div class="bet__stack">
+            <app-stacker [valor]="playerState.chips_wagered"></app-stacker>
+        </div>
+        <div *ngIf="playerState.chips_wagered > 0" class="bet__number"> {{playerState.chips_wagered}}$</div>
+    </div>
+
+</div>
+
+
+<div *ngIf="seatState === 'not-active'" class="player not-active">
+    <div>
+        Empty
+    </div>
 </div>

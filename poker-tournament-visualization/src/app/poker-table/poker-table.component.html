@@ -1,12 +1,15 @@
-<div class="borderOut">
+<!-- <div class="borderOut">
   <div class="restFrame">
     <div class="borderIn">
       <div class="wood">
         <div class="cloth">
           <div class="player left">
-            <app-poker-player [player]="player1" [imgurl]="'https://icons.iconarchive.com/icons/noctuline/wall-e/256/EVE-icon.png'" [side]="'left'" [playerState]="player1Playerstate"></app-poker-player>
+            <app-poker-player [player]="player1"
+              [imgurl]="'https://icons.iconarchive.com/icons/noctuline/wall-e/256/EVE-icon.png'" [side]="'left'"
+              [playerState]="player1Playerstate">
+            </app-poker-player>
           </div>
-          
+
           <div class="community">
             <div class="pot">
               <label class="text_glow">Pot: {{pot}}$</label>
@@ -14,11 +17,110 @@
             </div>
             <app-card-group [cards]="community" [overlap]="true"></app-card-group>
           </div>
+
           <div class="player right">
-            <app-poker-player [player]="player2" [imgurl]="'https://icons.iconarchive.com/icons/noctuline/wall-e/256/Wall-E-icon.png'" [side]="'right'" [playerState]="player2Playerstate"></app-poker-player>
+            <app-poker-player [player]="player2"
+              [imgurl]="'https://icons.iconarchive.com/icons/noctuline/wall-e/256/Wall-E-icon.png'" [side]="'right'"
+              [playerState]="player2Playerstate"></app-poker-player>
           </div>
         </div>
+
       </div>
     </div>
   </div>
 </div>
+<hr>
+<br> -->
+
+<div class="poker-table">
+
+  <!-- <div class="community">
+    <div class="pot">
+      <label class="text_glow">Pot: {{pot}}$</label>
+      <app-stacker [valor]="pot"></app-stacker>
+    </div>
+    <app-card-group [cards]="community" [overlap]="true"></app-card-group>
+
+  </div> -->
+
+  <div class="poker-table__community">
+
+    <div class="poker-table__community__pot">
+      <div class="poker-table__community__pot__amount">Pot: {{pot}}$</div>
+      <div class="poker-table__community__pot__stack">
+        <app-stacker [valor]="pot"></app-stacker>
+      </div>
+    </div>
+    <div class="poker-table__community__carts">
+      <app-card-group [cards]="community" [overlap]="true"></app-card-group>
+    </div>
+
+  </div>
+
+  <div class="poker-table__game">
+    <div class="players">
+
+
+
+      <div class="player num--1">
+        <app-poker-player class="player-component" [playerNo]="1" [player]="player1"
+          [imgurl]="'https://icons.iconarchive.com/icons/noctuline/wall-e/256/EVE-icon.png'" [side]="'left'"
+          [playerState]="player1Playerstate" [seatState]="'active'">
+        </app-poker-player>
+      </div>
+      <div class="player num--2">
+        <app-poker-player class="player-component" [playerNo]="2" [player]="player2"
+          [imgurl]="'https://icons.iconarchive.com/icons/noctuline/wall-e/256/Wall-E-icon.png'" [side]="'right'"
+          [playerState]="player2Playerstate" [seatState]="'active'"></app-poker-player>
+      </div>
+      <div class="player num--3">
+        <app-poker-player class="player-component" [playerNo]="3" [player]="player1"
+          [imgurl]="'https://icons.iconarchive.com/icons/noctuline/wall-e/256/EVE-icon.png'" [side]="'left'"
+          [playerState]="player2Playerstate" [seatState]="'active'">
+        </app-poker-player>
+      </div>
+      <div class="player num--4">
+        <app-poker-player class="player-component" [playerNo]="4" [player]="player2"
+          [imgurl]="'https://icons.iconarchive.com/icons/noctuline/wall-e/256/EVE-icon.png'" [side]="'left'"
+          [playerState]="player2Playerstate" [seatState]="'active'">
+        </app-poker-player>
+      </div>
+      <div class="player num--5">
+        <app-poker-player class="player-component" [playerNo]="5" [player]="player1"
+          [imgurl]="'https://icons.iconarchive.com/icons/noctuline/wall-e/256/EVE-icon.png'" [side]="'left'"
+          [playerState]="player1Playerstate" [seatState]="'active'">
+        </app-poker-player>
+      </div>
+      <div class="player num--6">
+        <app-poker-player class="player-component" [playerNo]="6" [player]="player2"
+          [imgurl]="'https://icons.iconarchive.com/icons/noctuline/wall-e/256/EVE-icon.png'" [side]="'left'"
+          [playerState]="player2Playerstate" [seatState]="'active'">
+        </app-poker-player>
+      </div>
+      <div class="player num--7">
+        <app-poker-player class="player-component" [playerNo]="7" [player]="player1"
+          [imgurl]="'https://icons.iconarchive.com/icons/noctuline/wall-e/256/EVE-icon.png'" [side]="'left'"
+          [playerState]="player1Playerstate" [seatState]="'active'">
+        </app-poker-player>
+      </div>
+      <div class="player num--8">
+        <app-poker-player class="player-component" [playerNo]="8" [player]="player1"
+          [imgurl]="'https://icons.iconarchive.com/icons/noctuline/wall-e/256/EVE-icon.png'" [side]="'left'"
+          [playerState]="player1Playerstate" [seatState]="'active'">
+        </app-poker-player>
+      </div>
+      <div class="player num--9">
+        <app-poker-player class="player-component" [playerNo]="9" [player]="player2"
+          [imgurl]="'https://icons.iconarchive.com/icons/noctuline/wall-e/256/EVE-icon.png'" [side]="'left'"
+          [playerState]="player2Playerstate" [seatState]="'small-blind'">
+        </app-poker-player>
+      </div>
+      <div class="player num--10">
+        <app-poker-player class="player-component" [playerNo]="10" [player]="player2"
+          [imgurl]="'https://icons.iconarchive.com/icons/noctuline/wall-e/256/EVE-icon.png'" [side]="'left'"
+          [playerState]="player2Playerstate" [seatState]="'big-blind'">
+        </app-poker-player>
+      </div>
+    </div>
+
+  </div>

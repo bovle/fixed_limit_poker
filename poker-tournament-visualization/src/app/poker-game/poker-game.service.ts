@@ -9,6 +9,9 @@ export interface Player {
   winner?: boolean;
 }
 
+export type SeatState = 'active' | 'not-active' | 'out' | 'fold' | 'small-blind' | 'big-blind' | undefined;
+
+
 export interface PokerGame {
   game_nbr: string;
   tournament_stage: string;
